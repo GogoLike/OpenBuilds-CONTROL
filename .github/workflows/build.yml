@@ -42,9 +42,13 @@ jobs:
           # macOS notarization API key
           API_KEY_ID: ${{ secrets.api_key_id }}
           API_KEY_ISSUER_ID: ${{ secrets.api_key_issuer_id }}
-          
-      - name: Download a Build Artifact
+      - name: Upload builds
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: builds
+          path: ./output
+      - name: Download builds
         uses: actions/download-artifact@v3.0.0
         with:
-          name: my-artifact
+          name: builds
 
