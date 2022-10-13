@@ -48,7 +48,7 @@ jobs:
         uses: actions/upload-artifact@v3.1.0
         with:
           name: builds
-          path: ~/
+          path: myapp/**
   release:
       name: Release project
       runs-on: ${{ matrix.os }}
