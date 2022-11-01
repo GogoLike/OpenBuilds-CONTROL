@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: build_windows_file
-          path: OpenBuildsCONTROL-Setup-1.0.332.exe
+          path: dist\OpenBuildsCONTROL-Setup-1.0.332.exe
 
         env:
           # macOS notarization API key
