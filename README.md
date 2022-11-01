@@ -1,3 +1,5 @@
+try Build with height map
+
 # OpenBuilds CONTROL
 OpenBuilds CONTROL - Grbl Host / Interface for all CNC style machines running Grbl
 
