@@ -37,18 +37,11 @@ containerHeight = window.innerHeight;
 
 var animationLoopTimeout;
 
-var xmin = 0,
-  xmax = 307,
-  ymin = 0,
-  ymax = 207
-
-var machineCoordinateSpace = false;
-
 function drawWorkspace(xmin, xmax, ymin, ymax) {
 
   if (!xmin) xmin = 0;
   if (!ymin) ymin = 0;
-  if (!xmax) xmax = 307
+  if (!xmax) xmax = 207
   if (!ymax) ymax = 207
 
   var sceneLights = new THREE.Group();
@@ -96,73 +89,58 @@ function drawWorkspace(xmin, xmax, ymin, ymax) {
   scene.fog = new THREE.Fog(0xffffff, 1, 20000);
 
   // SKYDOME
-  if (!disable3Dskybox) {
-    var uniforms = {
-      topColor: {
-        value: new THREE.Color(0x0077ff)
-      },
-      bottomColor: {
-        value: new THREE.Color(0xffffff)
-      },
-      offset: {
-        value: -63
-      },
-      exponent: {
-        value: 0.71
-      }
-    };
-    uniforms.topColor.value.copy(hemiLight.color);
+  var uniforms = {
+    topColor: {
+      value: new THREE.Color(0x0077ff)
+    },
+    bottomColor: {
+      value: new THREE.Color(0xffffff)
+    },
+    offset: {
+      value: -63
+    },
+    exponent: {
+      value: 0.71
+    }
+  };
+  uniforms.topColor.value.copy(hemiLight.color);
 
-    scene.fog.color.copy(uniforms.bottomColor.value);
+  scene.fog.color.copy(uniforms.bottomColor.value);
 
-    var vertexShader = document.getElementById('vertexShader').textContent;
-    var fragmentShader = document.getElementById('fragmentShader').textContent;
+  var vertexShader = document.getElementById('vertexShader').textContent;
+  var fragmentShader = document.getElementById('fragmentShader').textContent;
 
-    var skyGeo = new THREE.SphereGeometry(9900, 64, 15);
-    var skyMat = new THREE.ShaderMaterial({
-      vertexShader: vertexShader,
-      fragmentShader: fragmentShader,
-      uniforms: uniforms,
-      side: THREE.DoubleSide
-    });
+  var skyGeo = new THREE.SphereGeometry(9900, 64, 15);
+  var skyMat = new THREE.ShaderMaterial({
+    vertexShader: vertexShader,
+    fragmentShader: fragmentShader,
+    uniforms: uniforms,
+    side: THREE.DoubleSide
+  });
 
-    sky = new THREE.Mesh(skyGeo, skyMat);
-    sky.name = "Skydome"
-    workspace.add(sky);
-  }
+  sky = new THREE.Mesh(skyGeo, skyMat);
+  sky.name = "Skydome"
+  workspace.add(sky);
 
-  if (!disable3Drealtimepos) {
-    var coneGeo = new THREE.CylinderGeometry(0, 5, 40, 15, 1, false)
-    coneGeo.applyMatrix(new THREE.Matrix4().makeTranslation(0, -20, 0));
-
-    cone = new THREE.Mesh(coneGeo, new THREE.MeshPhongMaterial({
-      color: 0x0000ff,
-      specular: 0x0000ff,
-      shininess: 00
-    }));
-
-    cone.overdraw = true;
-    cone.rotation.x = -90 * Math.PI / 180;
-    cone.position.x = 0;
-    cone.position.y = 0;
-    cone.position.z = 0;
-    cone.material.opacity = 0.6;
-    cone.material.transparent = true;
-    cone.castShadow = false;
-    cone.visible = true;
-    cone.name = "Simulation Marker"
-    workspace.add(cone)
-
-  }
+  cone = new THREE.Mesh(new THREE.CylinderGeometry(0, 5, 40, 15, 1, false), new THREE.MeshPhongMaterial({
+    color: 0x0000ff,
+    specular: 0x0000ff,
+    shininess: 00
+  }));
+  cone.overdraw = true;
+  cone.rotation.x = -90 * Math.PI / 180;
+  cone.position.x = 20;
+  cone.position.y = 0;
+  cone.position.z = 0;
+  cone.material.opacity = 0.6;
+  cone.material.transparent = true;
+  cone.castShadow = false;
+  cone.visible = false;
+  cone.name = "Simulation Marker"
+  workspace.add(cone)
   gridsystem.name = "Grid System"
   workspace.add(gridsystem)
-  if (localStorage.getItem('unitsMode')) {
-    if (localStorage.getItem('unitsMode') == "in") {
-      redrawGrid(xmin / 25.4, xmax / 25.4, ymin / 25.4, ymax / 25.4, true);
-    } else {
-      redrawGrid(xmin, xmax, ymin, ymax, false);
-    }
-  }
+  redrawGrid(xmin, xmax, ymin, ymax, false);
   scene.add(workspace)
 }
 
@@ -173,11 +151,6 @@ function redrawGrid(xmin, xmax, ymin, ymax, inches) {
     xmax = Math.ceil(xmax * 25.4);
     ymin = Math.floor(ymin * 25.4);
     ymax = Math.ceil(ymax * 25.4);
-  } else {
-    xmin = Math.floor(xmin);
-    xmax = Math.ceil(xmax);
-    ymin = Math.floor(ymin);
-    ymax = Math.ceil(ymax);
   }
   // console.log(xmin, xmax, ymin, ymax, inches)
 
@@ -311,12 +284,21 @@ function setBullseyePosition(x, y, z) {
 
 function init3D() {
 
+  var webgl = (function() {
+    try {
+      return !!window.WebGLRenderingContext && !!document.createElement('canvas').getContext('experimental-webgl');
+    } catch (e) {
+      return false;
+    }
+  })();
+
+
   if (webgl) {
-    // console.log('WebGL Support found! success: this application will work optimally on this device!');
-    printLog("<span class='fg-darkRed'>[ 3D Viewer ] </span><span class='fg-green'>WebGL Support found! success: this application will work optimally on this device!</span>")
+    console.log('WebGL Support found! success: this application will work optimally on this device!');
+    printLog("<span class='fg-red'>[ 3D Viewer ] </span><span class='fg-green'>WebGL Support found! success: this application will work optimally on this device!</span>")
     renderer = new THREE.WebGLRenderer({
       autoClearColor: true,
-      antialias: true,
+      antialias: false,
       preserveDrawingBuffer: true
     });
     // ThreeJS Render/Control/Camera
@@ -336,26 +318,23 @@ function init3D() {
     camera.updateProjectionMatrix();
 
 
-    if (!disable3Dcontrols) {
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.target.set(0, 0, 0); // view direction perpendicular to XY-plane
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.set(0, 0, 0); // view direction perpendicular to XY-plane
 
-      if (!isMac) {
-        controls.mouseButtons = {
-          ORBIT: THREE.MOUSE.MIDDLE,
-          ZOOM: false,
-          PAN: THREE.MOUSE.RIGHT
-        };
-      }
-      controls.enableRotate = true;
-      controls.enableZoom = true; // optional
-      controls.maxDistance = 8000; // limit max zoom out
-      controls.enableKeys = false; // Disable Keyboard on canvas
+    if (!isMac) {
+      controls.mouseButtons = {
+        ORBIT: THREE.MOUSE.MIDDLE,
+        ZOOM: false,
+        PAN: THREE.MOUSE.RIGHT
+      };
     }
+    controls.enableRotate = true;
+    controls.enableZoom = true; // optional
+    controls.maxDistance = 8000; // limit max zoom out
+    controls.enableKeys = false; // Disable Keyboard on canvas
 
 
-    //drawWorkspace(xmin, xmax, ymin, ymax)
-    drawWorkspace(xmin, xmax, ymin, ymax);
+    drawWorkspace();
 
     // Picking stuff
     projector = new THREE.Projector();
@@ -369,28 +348,62 @@ function init3D() {
 
   } else {
     console.log('No WebGL Support found on this computer! Disabled 3D Viewer - Sorry!');
-    printLog("<span class='fg-darkRed'>[ ERROR ]</span>  <span class='fg-darkRed'>No WebGL Support found on this computer! Disabled 3D Viewer - Sorry!</span>")
+    printLog('No WebGL Support found on this computer! Disabled 3D Viewer - Sorry!');
     $('#gcodeviewertab').hide()
     $('#consoletab').click()
+    // renderer = new THREE.CanvasRenderer();
     return false;
   };
+
+
 
 }
 
 function animate() {
   if (!pauseAnimation) {
     camera.updateMatrixWorld();
-    simAnimate()
-    toolAnimate();
 
     if (clearSceneFlag) {
       while (scene.children.length > 1) {
         scene.remove(scene.children[1])
       }
 
+      // var documents = new THREE.Group();
+      // documents.name = "Documents";
+      // for (i = 0; i < objectsInScene.length; i++) {
+      //   documents.add(objectsInScene[i])
+      // }
+      // scene.add(documents)
+      //
+      // var toolpaths = new THREE.Group();
+      // toolpaths.name = "Toolpaths";
+      // for (i = 0; i < toolpathsInScene.length; i++) {
+      //
+      //   if (toolpathsInScene[i].userData.visible) {
+      //     if (toolpathsInScene[i].userData.inflated) {
+      //       if (toolpathsInScene[i].userData.inflated.userData.pretty) {
+      //         if (toolpathsInScene[i].userData.inflated.userData.pretty.children.length > 0) {
+      //           toolpaths.add(toolpathsInScene[i].userData.inflated.userData.pretty);
+      //         } else {
+      //           toolpaths.add(toolpathsInScene[i].userData.inflated);
+      //         }
+      //       } else {
+      //         toolpaths.add(toolpathsInScene[i].userData.inflated);
+      //       }
+      //     };
+      //   }
+      // }
+      // scene.add(toolpaths)
+
+      // if (fancysim == true) {
+      //   scene.add(simgcodeobj)
+      // } else {
       if (object) {
         scene.add(object)
       }
+
+      // }
+
 
       clearSceneFlag = false;
     } // end clearSceneFlag
@@ -398,90 +411,90 @@ function animate() {
     // Limited FPS https://stackoverflow.com/questions/11285065/limiting-framerate-in-three-js-to-increase-performance-requestanimationframe
     animationLoopTimeout = setTimeout(function() {
       requestAnimationFrame(animate);
-    }, 60);
+    }, 40);
 
     renderer.render(scene, camera);
   }
 }
 
+
+
 function viewExtents(objecttosee) {
-  if (!disable3Dcontrols) {
-    // console.log("viewExtents. object:", objecttosee);
-    // console.log("controls:", controls);
-    //wakeAnimate();
+  // console.log("viewExtents. object:", objecttosee);
+  // console.log("controls:", controls);
+  //wakeAnimate();
 
-    // lets override the bounding box with a newly
-    // generated one
-    // get its bounding box
-    if (objecttosee) {
-      // console.log(objecttosee)
-      var helper = new THREE.BoxHelper(objecttosee);
-      helper.update();
-      var box3 = new THREE.Box3();
-      box3.setFromObject(helper);
-      var minx = box3.min.x;
-      var miny = box3.min.y;
-      var maxx = box3.max.x;
-      var maxy = box3.max.y;
-      var minz = box3.min.z;
-      var maxz = box3.max.z;
+  // lets override the bounding box with a newly
+  // generated one
+  // get its bounding box
+  if (objecttosee) {
+    // console.log(objecttosee)
+    var helper = new THREE.BoxHelper(objecttosee);
+    helper.update();
+    var box3 = new THREE.Box3();
+    box3.setFromObject(helper);
+    var minx = box3.min.x;
+    var miny = box3.min.y;
+    var maxx = box3.max.x;
+    var maxy = box3.max.y;
+    var minz = box3.min.z;
+    var maxz = box3.max.z;
 
 
-      controls.reset();
+    controls.reset();
 
-      var lenx = maxx - minx;
-      var leny = maxy - miny;
-      var lenz = maxz - minz;
-      var centerx = minx + (lenx / 2);
-      var centery = miny + (leny / 2);
-      var centerz = minz + (lenz / 2);
+    var lenx = maxx - minx;
+    var leny = maxy - miny;
+    var lenz = maxz - minz;
+    var centerx = minx + (lenx / 2);
+    var centery = miny + (leny / 2);
+    var centerz = minz + (lenz / 2);
 
-      // console.log("lenx:", lenx, "leny:", leny, "lenz:", lenz);
-      var maxlen = Math.max(lenx, leny, lenz);
-      var dist = 2 * maxlen;
-      // center camera on gcode objects center pos, but twice the maxlen
-      controls.object.position.x = centerx;
-      controls.object.position.y = centery;
-      controls.object.position.z = centerz + dist;
-      controls.target.x = centerx;
-      controls.target.y = centery;
-      controls.target.z = centerz;
-      // console.log("maxlen:", maxlen, "dist:", dist);
-      var fov = 2.2 * Math.atan(maxlen / (2 * dist)) * (180 / Math.PI);
-      // console.log("new fov:", fov, " old fov:", controls.object.fov);
-      if (isNaN(fov)) {
-        // console.log("giving up on viewing extents because fov could not be calculated");
-        return;
-      } else {
-        // console.log("fov: ", fov);
-        controls.object.fov = fov;
-        var L = dist;
-        var camera2 = controls.object;
-        var vector = controls.target.clone();
-        var l = (new THREE.Vector3()).subVectors(camera2.position, vector).length();
-        var up = camera.up.clone();
-        var quaternion = new THREE.Quaternion();
+    // console.log("lenx:", lenx, "leny:", leny, "lenz:", lenz);
+    var maxlen = Math.max(lenx, leny, lenz);
+    var dist = 2 * maxlen;
+    // center camera on gcode objects center pos, but twice the maxlen
+    controls.object.position.x = centerx;
+    controls.object.position.y = centery;
+    controls.object.position.z = centerz + dist;
+    controls.target.x = centerx;
+    controls.target.y = centery;
+    controls.target.z = centerz;
+    // console.log("maxlen:", maxlen, "dist:", dist);
+    var fov = 2.2 * Math.atan(maxlen / (2 * dist)) * (180 / Math.PI);
+    // console.log("new fov:", fov, " old fov:", controls.object.fov);
+    if (isNaN(fov)) {
+      // console.log("giving up on viewing extents because fov could not be calculated");
+      return;
+    } else {
+      // console.log("fov: ", fov);
+      controls.object.fov = fov;
+      var L = dist;
+      var camera2 = controls.object;
+      var vector = controls.target.clone();
+      var l = (new THREE.Vector3()).subVectors(camera2.position, vector).length();
+      var up = camera.up.clone();
+      var quaternion = new THREE.Quaternion();
 
-        // Zoom correction
-        camera2.translateZ(L - l);
-        // console.log("up:", up);
-        up.y = 1;
-        up.x = 0;
-        up.z = 0;
-        quaternion.setFromAxisAngle(up, 0);
-        camera2.position.applyQuaternion(quaternion);
-        up.y = 0;
-        up.x = 1;
-        up.z = 0;
-        quaternion.setFromAxisAngle(up, 0);
-        camera2.position.applyQuaternion(quaternion);
-        up.y = 0;
-        up.x = 0;
-        up.z = 1;
-        quaternion.setFromAxisAngle(up, 0);
-        camera2.lookAt(vector);
-        controls.object.updateProjectionMatrix();
-      }
+      // Zoom correction
+      camera2.translateZ(L - l);
+      // console.log("up:", up);
+      up.y = 1;
+      up.x = 0;
+      up.z = 0;
+      quaternion.setFromAxisAngle(up, 0);
+      camera2.position.applyQuaternion(quaternion);
+      up.y = 0;
+      up.x = 1;
+      up.z = 0;
+      quaternion.setFromAxisAngle(up, 0);
+      camera2.position.applyQuaternion(quaternion);
+      up.y = 0;
+      up.x = 0;
+      up.z = 1;
+      quaternion.setFromAxisAngle(up, 0);
+      camera2.lookAt(vector);
+      controls.object.updateProjectionMatrix();
     }
   }
 };
@@ -553,9 +566,7 @@ function fixRenderSize() {
       //renderer.setSize(window.innerWidth, window.innerHeight);
       camera.aspect = sceneWidth / sceneHeight;
       camera.updateProjectionMatrix();
-      if (!disable3Dcontrols) {
-        controls.reset();
-      }
+      controls.reset();
       setTimeout(function() {
         resetView();
       }, 10);
@@ -586,88 +597,8 @@ function resetView(object) {
       viewExtents(helper);
     }
   } else {
-    if (object.userData.linePoints.length > 1) {
+    if (object.userData.lines.length > 1) {
       viewExtents(object);
     }
   }
-}
-
-function drawMachineCoordinates(status) {
-
-  if (laststatus != undefined && grblParams.$130 !== undefined && grblParams.$131 !== undefined && grblParams.$132 !== undefined) {
-    var machineCoordinatesBoxMaxX = status.machine.position.work.x - status.machine.position.offset.x
-    var machineCoordinatesBoxMaxY = status.machine.position.work.y - status.machine.position.offset.y
-    var machineCoordinatesBoxMaxZ = status.machine.position.work.z - status.machine.position.offset.z
-
-    var machineCoordinatesBoxMinX = machineCoordinatesBoxMaxX - grblParams.$130
-    var machineCoordinatesBoxMinY = machineCoordinatesBoxMaxY - grblParams.$131
-    var machineCoordinatesBoxMinZ = machineCoordinatesBoxMaxZ - grblParams.$132
-
-    console.log("X", machineCoordinatesBoxMinX, machineCoordinatesBoxMaxX)
-    console.log("Y", machineCoordinatesBoxMinY, machineCoordinatesBoxMaxY)
-    console.log("Z", machineCoordinatesBoxMinZ, machineCoordinatesBoxMaxZ)
-
-
-    workspace.remove(machineCoordinateSpace);
-    machineCoordinateSpace = new THREE.Group();
-
-    var material = new THREE.LineBasicMaterial({
-      color: 0x888888,
-      transparent: true,
-      opacity: 0.3
-    });
-
-    // Z min layer
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
-
-    // Z max layer
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
-
-    // corner f/l
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
-
-    // corner f/r
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMinX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
-
-    // corner r/l
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMinY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
-
-    // corner r/r
-    var points = [];
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMinZ));
-    points.push(new THREE.Vector3(machineCoordinatesBoxMaxX, machineCoordinatesBoxMaxY, machineCoordinatesBoxMaxZ));
-    var geometry = new THREE.BufferGeometry().setFromPoints(points);
-    machineCoordinateSpace.add(new THREE.Line(geometry, material));
-
-    workspace.add(machineCoordinateSpace);
-  }
-
-
-
 }

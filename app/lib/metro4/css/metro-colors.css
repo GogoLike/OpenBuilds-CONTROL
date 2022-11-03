@@ -1101,7 +1101,7 @@
 .tg-cyan::before {
   border-color: #1ba1e2;
 }
-.fg-grayBlue {
+.fg-cobalt {
   color: #0050ef !important;
 }
 .bg-cobalt {
@@ -1113,13 +1113,13 @@
 .ol-cobalt {
   outline-color: #0050ef !important;
 }
-.fg-grayBlue-active:active {
+.fg-cobalt-active:active {
   color: #0050ef !important;
 }
-.fg-grayBlue-hover:hover {
+.fg-cobalt-hover:hover {
   color: #0050ef !important;
 }
-.fg-grayBlue-focus:focus {
+.fg-cobalt-focus:focus {
   color: #0050ef !important;
 }
 .bg-cobalt-active:active {
@@ -1156,13 +1156,13 @@
 .before-bg-cobalt::before {
   background: #0050ef !important;
 }
-.before-fg-grayBlue::before {
+.before-fg-cobalt::before {
   color: #0050ef !important;
 }
 .after-bg-cobalt::after {
   background: #0050ef !important;
 }
-.after-fg-grayBlue::after {
+.after-fg-cobalt::after {
   color: #0050ef !important;
 }
 .op-cobalt {

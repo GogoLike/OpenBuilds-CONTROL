@@ -1,25 +1,26 @@
 <form id="uploadform" enctype="multipart/form-data">
   <input id="filename" name="file" type="file" accept=".gcode, .cnc, .tap, .nc" /></span>
-  <button type="submit">Upload</button>
+  <button onclick="stltobackend()">Upload</button>
 </form>
-<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
-
 
 <script>
-  $('#uploadform').submit(function(e) {
-    e.preventDefault();
+  function stltobackend() {
     $.ajax({
       url: '/upload',
       type: 'POST',
-      processData: false,
-      contentType: false,
-      cache: false,
       data: new FormData($('#uploadform')[0]),
-      enctype: 'multipart/form-data',
-      success: function() {
-        console.log('Uploaded sucessfully');
-      }
+      // Tell jQuery not to process data or worry about content-type
+      // You *must* include these options!
+      cache: false,
+      contentType: false,
+      processData: false,
+      // Custom XMLHttpRequest
+      xhr: function() {
+        var myXhr = $.ajaxSettings.xhr();
+        return myXhr;
+      },
     });
-
-  });
+  }
 </script>
+
+<script type="text/javascript" src="lib/jquery/jquery.min.js"></script>
